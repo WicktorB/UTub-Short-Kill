@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UTub Short Kill</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="pop">
+      <h1>UTub Short Kill</h1>
+
+      <label class="toggle">
+        <input type="checkbox" id="enabled" />
+        <span>Extension active</span>
+      </label>
+
+      <div id="lockState" class="state"></div>
+
+      <button id="relock" class="btn danger">Verrouiller maintenant</button>
+      <button id="openOptions" class="btn ghost">Réglages…</button>
+    </div>
+
+    <script src="../common/defaults.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

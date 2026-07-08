@@ -1,0 +1,126 @@
+/* Fenêtre des 3 questions affichée avant d'autoriser l'accès à un Short. */
+#usk-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(9, 9, 11, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #f4f4f5;
+}
+
+#usk-gate * {
+  box-sizing: border-box;
+}
+
+#usk-gate .usk-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 16px;
+  padding: 28px 26px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+#usk-gate .usk-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+#usk-gate .usk-sub {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #a1a1aa;
+}
+
+#usk-gate .usk-field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+#usk-gate .usk-q {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+#usk-gate .usk-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 46px;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #f4f4f5;
+  background: #27272a;
+  border: 1px solid #52525b;
+  border-radius: 10px;
+  outline: none;
+}
+
+#usk-gate .usk-input:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+#usk-gate .usk-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+#usk-gate .usk-btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+#usk-gate .usk-leave {
+  flex: 1.4;
+  background: #22c55e;
+  color: #06210f;
+}
+
+#usk-gate .usk-leave:hover {
+  background: #16a34a;
+}
+
+#usk-gate .usk-unlock {
+  background: #ef4444;
+  color: #fff;
+}
+
+#usk-gate .usk-unlock:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+#usk-gate .usk-unlock:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#usk-gate .usk-hint {
+  margin: 12px 0 0;
+  min-height: 16px;
+  font-size: 13px;
+  color: #fca5a5;
+  text-align: center;
+}

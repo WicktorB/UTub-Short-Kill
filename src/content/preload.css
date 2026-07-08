@@ -1,0 +1,11 @@
+/* Masquage synchrone du lecteur d'une page /shorts tant que le verrou n'est pas
+   évalué, pour éviter que la vidéo s'affiche avant l'apparition des 3 questions.
+   L'attribut data-usk-checking est posé/retiré par le content script. */
+html[data-usk-checking="1"] ytd-shorts,
+html[data-usk-checking="1"] ytd-reel-video-renderer,
+html[data-usk-checking="1"] #shorts-player,
+html[data-usk-checking="1"] ytm-shorts,
+html[data-usk-checking="1"] .reel-video-in-sequence,
+html[data-usk-checking="1"] ytd-page-manager video {
+  visibility: hidden !important;
+}

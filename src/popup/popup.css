@@ -1,0 +1,85 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --text: #18181b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --accent: #ef4444;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18181b;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --border: #3f3f46;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.pop {
+  width: 260px;
+  padding: 16px;
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.state {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 14px;
+  min-height: 18px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn.danger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

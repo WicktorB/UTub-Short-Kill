@@ -1,0 +1,7 @@
+# Build Safari généré par safari-web-extension-converter
+safari/build/
+
+# Dépendances / divers
+node_modules/
+*.log
+.DS_Store
