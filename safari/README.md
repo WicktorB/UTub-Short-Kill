@@ -9,14 +9,23 @@ Tools* (`xcode-select --install`).
 
 ## 1. Convertir l'extension
 
-Depuis la racine du dépôt :
+Le plus simple, depuis la racine du dépôt :
+
+```bash
+bash safari/convert.sh
+```
+
+<details>
+<summary>…ou la commande complète à la main</summary>
 
 ```bash
 xcrun safari-web-extension-converter . \
   --project-location safari/build \
   --app-name "UTub Short Kill" \
-  --bundle-identifier com.victorbauchet.utubshortkill
+  --bundle-identifier com.victorbauchet.utubshortkill \
+  --force
 ```
+</details>
 
 Cela génère un projet Xcode contenant **deux cibles** : l'app macOS et l'app iOS
 (la même extension partagée). Ajoute `--macos-only` ou `--ios-only` si tu ne veux
