@@ -3,14 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>UTub Short Kill — Options</title>
+    <title>UTub Short Kill — Réglages</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <main class="wrap">
-      <header>
-        <h1>UTub Short Kill</h1>
-        <p class="tagline">Moins de Shorts, plus de temps.</p>
+      <header class="hero">
+        <img class="logo" src="../../icons/icon-128.png" alt="" width="52" height="52" />
+        <div>
+          <h1>UTub Short Kill</h1>
+          <p class="tagline">Moins de Shorts, plus de temps.</p>
+        </div>
       </header>
 
       <section class="group">
@@ -36,6 +39,14 @@
             <small>Ouvrir un Short demande de répondre manuellement.</small>
           </span>
           <input type="checkbox" id="gateEnabled" />
+        </label>
+
+        <label class="row switch">
+          <span>
+            <strong>Afficher le minuteur</strong>
+            <small>Pastille discrète du temps restant pendant le visionnage.</small>
+          </span>
+          <input type="checkbox" id="showTimer" />
         </label>
 
         <label class="row switch">

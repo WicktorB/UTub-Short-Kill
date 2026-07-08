@@ -8,14 +8,23 @@
   </head>
   <body>
     <div class="pop">
-      <h1>UTub Short Kill</h1>
+      <header class="head">
+        <img class="logo" src="../../icons/icon-128.png" alt="" width="30" height="30" />
+        <h1>UTub Short Kill</h1>
+      </header>
+
+      <div id="card" class="card locked">
+        <div class="dot"></div>
+        <div class="txt">
+          <span id="stateLabel" class="label">Shorts verrouillés</span>
+          <span id="stateTime" class="time"></span>
+        </div>
+      </div>
 
       <label class="toggle">
         <input type="checkbox" id="enabled" />
         <span>Extension active</span>
       </label>
-
-      <div id="lockState" class="state"></div>
 
       <button id="relock" class="btn danger">Verrouiller maintenant</button>
       <button id="openOptions" class="btn ghost">Réglages…</button>

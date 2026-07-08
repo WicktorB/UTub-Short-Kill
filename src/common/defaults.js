@@ -8,6 +8,7 @@
     enabled: true, // extension active
     hideShorts: true, // masquer les Shorts dans les feeds / recherche / reco
     gateEnabled: true, // exiger les 3 questions pour accéder à un Short
+    showTimer: true, // afficher le minuteur de temps restant pendant le visionnage
     allowFromChannels: true, // exception : Shorts accessibles depuis une chaîne
     openMode: "short", // "short" = lecteur Shorts | "watch" = lecteur vidéo normal
     unlockMinutes: 5, // durée de déblocage après réussite (en minutes)

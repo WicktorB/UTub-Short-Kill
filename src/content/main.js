@@ -1,4 +1,5 @@
-// Content script principal : masquage des Shorts + garde d'accès (3 questions).
+// Content script principal : masquage des Shorts + garde d'accès (3 questions)
+// + minuteur de temps restant.
 (function () {
   "use strict";
 
@@ -19,9 +20,20 @@
     "ytm-media-item"
   ];
 
+  // Logo (panneau d'interdiction sur un triangle « play »), en SVG inline.
+  const LOGO_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2"/>' +
+    '<path d="M10.2 8.6l5 3.4-5 3.4z" fill="currentColor"/>' +
+    '<line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+    "</svg>";
+
   let CONFIG = U.DEFAULTS;
   let currentPath = null;
   let pauseTimer = null;
+  let unlockedUntil = 0; // cache local (synchronisé avec le stockage)
+  let wasUnlocked = false;
+  let tickHandle = null;
 
   // ---------------------------------------------------------------- Chemins
 
@@ -114,9 +126,10 @@
       resumeVideos();
       U.removeGate();
     }
+    tickTimer();
   }
 
-  async function guardShorts(path, prevPath) {
+  function guardShorts(path, prevPath) {
     // Garde désactivée → laisser passer.
     if (!CONFIG.enabled || !CONFIG.gateEnabled) {
       markChecking(false);
@@ -129,19 +142,20 @@
       return;
     }
 
-    markChecking(true);
-    pauseVideos();
-
-    const unlockedUntil = await U.getUnlockedUntil();
+    // Fenêtre de déblocage encore active.
     if (unlockedUntil > Date.now()) {
       onUnlocked(path);
       return;
     }
 
+    // Verrouillé → poser les 3 questions.
+    markChecking(true);
+    pauseVideos();
     U.showGate(CONFIG, async function () {
-      const until = Date.now() + CONFIG.unlockMinutes * 60000;
-      await U.setUnlockedUntil(until);
+      unlockedUntil = Date.now() + CONFIG.unlockMinutes * 60000;
+      await U.setUnlockedUntil(unlockedUntil);
       onUnlocked(path);
+      tickTimer();
     });
   }
 
@@ -159,6 +173,58 @@
     resumeVideos();
   }
 
+  // ------------------------------------------------------------- Minuteur
+
+  function pad(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+
+  function formatTime(totalSec) {
+    if (totalSec < 0) totalSec = 0;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return h > 0 ? h + ":" + pad(m) + ":" + pad(s) : m + ":" + pad(s);
+  }
+
+  function renderTimer(ms) {
+    let el = document.getElementById("usk-timer");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "usk-timer";
+      el.setAttribute("aria-hidden", "true");
+      el.innerHTML =
+        '<span class="usk-timer-dot"></span><span class="usk-timer-text"></span>';
+      (document.body || document.documentElement).appendChild(el);
+    }
+    const totalSec = Math.ceil(ms / 1000);
+    el.querySelector(".usk-timer-text").textContent = formatTime(totalSec);
+    el.classList.toggle("usk-timer-low", totalSec <= 30);
+  }
+
+  function removeTimer() {
+    const el = document.getElementById("usk-timer");
+    if (el) el.remove();
+  }
+
+  function tickTimer() {
+    const onShorts = isShortsPath();
+    const remaining = unlockedUntil - Date.now();
+    const gateOpen = !!document.getElementById("usk-gate");
+
+    if (CONFIG.enabled && CONFIG.showTimer && onShorts && remaining > 0 && !gateOpen) {
+      renderTimer(remaining);
+    } else {
+      removeTimer();
+    }
+
+    // Re-verrouillage automatique à l'expiration de la fenêtre.
+    if (onShorts && CONFIG.enabled && CONFIG.gateEnabled && wasUnlocked && remaining <= 0 && !gateOpen) {
+      guardShorts(location.pathname, location.pathname);
+    }
+    wasUnlocked = remaining > 0;
+  }
+
   // ------------------------------------------------------- Fenêtre 3 questions
 
   U.showGate = function (config, onSuccess) {
@@ -172,9 +238,16 @@
     const card = document.createElement("div");
     card.className = "usk-card";
 
+    const head = document.createElement("div");
+    head.className = "usk-head";
+    const logo = document.createElement("span");
+    logo.className = "usk-logo";
+    logo.innerHTML = LOGO_SVG;
     const title = document.createElement("h1");
     title.className = "usk-title";
     title.textContent = "Es-tu sûr de vouloir regarder des Shorts ?";
+    head.appendChild(logo);
+    head.appendChild(title);
 
     const sub = document.createElement("p");
     sub.className = "usk-sub";
@@ -253,7 +326,7 @@
 
     actions.appendChild(leave);
     actions.appendChild(unlock);
-    card.appendChild(title);
+    card.appendChild(head);
     card.appendChild(sub);
     form.appendChild(actions);
     form.appendChild(hint);
@@ -320,19 +393,32 @@
 
   async function init() {
     CONFIG = await U.getConfig();
+    unlockedUntil = await U.getUnlockedUntil();
 
     if (U.api && U.api.storage && U.api.storage.onChanged) {
       U.api.storage.onChanged.addListener(function (changes, area) {
-        if (area !== "local" || !changes[U.STORAGE_KEY]) return;
-        CONFIG = Object.assign({}, U.DEFAULTS, changes[U.STORAGE_KEY].newValue || {});
-        if (!CONFIG.enabled || !CONFIG.hideShorts) unhideAll();
-        updateChannelFlag();
-        hideShortItems(document);
+        if (area !== "local") return;
+        if (changes[U.STORAGE_KEY]) {
+          CONFIG = Object.assign({}, U.DEFAULTS, changes[U.STORAGE_KEY].newValue || {});
+          if (!CONFIG.enabled || !CONFIG.hideShorts) unhideAll();
+          updateChannelFlag();
+          hideShortItems(document);
+          tickTimer();
+        }
+        if (changes[U.UNLOCK_KEY]) {
+          unlockedUntil = changes[U.UNLOCK_KEY].newValue || 0;
+          // Re-verrouillage immédiat si on coupe l'accès pendant un Short.
+          if (isShortsPath() && unlockedUntil <= Date.now() && CONFIG.enabled && CONFIG.gateEnabled) {
+            guardShorts(location.pathname, location.pathname);
+          }
+          tickTimer();
+        }
       });
     }
 
     setupNavigationHooks();
     observeMutations();
+    tickHandle = setInterval(tickTimer, 1000);
     handleNavigation();
   }
 
@@ -344,12 +430,18 @@
     setConfig: function (c) {
       CONFIG = Object.assign({}, U.DEFAULTS, c || {});
     },
+    setUnlocked: function (ts) {
+      unlockedUntil = ts || 0;
+    },
     hideShortItems: hideShortItems,
     unhideAll: unhideAll,
     updateChannelFlag: updateChannelFlag,
     isChannelPath: isChannelPath,
     isShortsPath: isShortsPath,
-    shortsIdFromPath: shortsIdFromPath
+    shortsIdFromPath: shortsIdFromPath,
+    formatTime: formatTime,
+    renderTimer: renderTimer,
+    removeTimer: removeTimer
   };
 
   // Démarrage uniquement dans un vrai contexte d'extension.

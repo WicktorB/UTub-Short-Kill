@@ -17,6 +17,7 @@ Un seul code (Manifest V3) fonctionne sur **Chrome, Edge, Brave, Firefox** et
 | Ne pas y accéder facilement | Toute page `/shorts/…` est bloquée par 3 questions |
 | Exception : les chaînes | Sur `/@chaine`, `/channel/…`, les Shorts restent visibles/accessibles |
 | Gagner du temps | Bouton « Quitter » bien en évidence ; option lecteur normal sans scroll infini |
+| Rester conscient du temps | Minuteur discret en haut de l'écran (translucide, non bloquant) + re-verrouillage automatique à l'expiration |
 
 ## Installation
 
@@ -43,6 +44,9 @@ Clic sur l'icône → **Réglages…**, ou via la page d'options de l'extension 
 - **Extension active** — coupe tout d'un coup.
 - **Masquer les Shorts** — masquage dans les feeds/recherche/reco.
 - **Protéger l'accès par 3 questions** — active la fenêtre de questions.
+- **Afficher le minuteur** — pastille discrète (haut-centre, translucide, sans
+  blocage des clics/taps) du temps restant ; passe en rouge et pulse dans les 30
+  dernières secondes, puis re-verrouille automatiquement.
 - **Autoriser depuis les chaînes** — laisse les Shorts d'un créateur accessibles.
 - **Ouverture d'un Short débloqué** :
   - *Lecteur Shorts* — format vertical habituel une fois débloqué.

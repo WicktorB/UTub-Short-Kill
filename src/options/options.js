@@ -5,7 +5,7 @@
 
   const U = globalThis.USK;
 
-  const CHECKBOXES = ["enabled", "hideShorts", "gateEnabled", "allowFromChannels"];
+  const CHECKBOXES = ["enabled", "hideShorts", "gateEnabled", "showTimer", "allowFromChannels"];
   const NUMBERS = ["unlockMinutes", "minAnswerLength"];
 
   const statusEl = document.getElementById("status");
