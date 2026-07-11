@@ -32,10 +32,14 @@ Un seul code (Manifest V3) fonctionne sur **Chrome, Edge, Brave, Firefox** et
    (temporaire = jusqu'au redémarrage ; pour du permanent il faut signer le `.xpi`
    sur [addons.mozilla.org](https://addons.mozilla.org))
 
-### Safari (macOS & iPhone)
-Nécessite un Mac avec Xcode. Voir **[`safari/README.md`](safari/README.md)** pour
-la conversion (`safari-web-extension-converter`), la signature et le déploiement
-sur l'iPhone.
+### iPhone / Safari — le plus simple (sans Xcode)
+Utilise la **version userscript** : installe l'app gratuite **« Userscripts »**,
+colle le script, c'est fini. Aucun Mac, aucune compilation, pas d'expiration.
+Voir **[`userscript/README.md`](userscript/README.md)**.
+
+### Safari en vraie extension (macOS & iPhone, avec Xcode)
+Si tu veux le rendu « app » complet (page d'options + popup), tu peux emballer
+l'extension avec Xcode : voir **[`safari/README.md`](safari/README.md)**.
 
 ## Réglages
 
