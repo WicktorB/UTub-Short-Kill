@@ -14,7 +14,7 @@ via un gestionnaire de userscripts — **sans Xcode, sans Mac, sans expiration**
 4. **Ajoute le script** : ouvre ce lien brut dans Safari, sélectionne tout, copie :
 
    ```
-   https://raw.githubusercontent.com/WicktorB/UTub-Short-Kill/claude/youtube-shorts-restriction-8xxjz1/userscript/utub-short-kill.user.js
+   https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/claude/youtube-shorts-restriction-8xxjz1/userscript/utub-short-kill.user.js
    ```
 
    Puis dans Userscripts → **+** → nouveau script → **colle** → enregistre.
