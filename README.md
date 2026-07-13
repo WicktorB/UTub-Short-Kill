@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/WicktorB/YouTube-Short-Kill/actions/workflows/ci.yml/badge.svg)](https://github.com/WicktorB/YouTube-Short-Kill/actions/workflows/ci.yml)
 
-Extension de navigateur qui **supprime les YouTube Shorts** de partout — accueil,
-abonnements, recherche, recommandations, barre latérale, barre de navigation
-mobile — **sauf sur la page d'une chaîne de créateur**. Pour ouvrir un Short, il
-faut **répondre manuellement à 3 questions**, ce qui crée juste assez de friction
-pour ne pas s'y perdre.
+Supprime les **YouTube Shorts** de partout — accueil, abonnements, recherche,
+recommandations, barre latérale, barre de navigation mobile — **sauf sur la page
+d'une chaîne de créateur**. Pour ouvrir un Short, il faut **répondre manuellement à
+3 questions** : juste assez de friction pour ne pas s'y perdre.
 
-Un seul code (Manifest V3) fonctionne sur **Chrome, Edge, Brave, Firefox** et
-**Safari macOS + iOS**.
+Deux formats, même effet : un **userscript** en un seul fichier (la voie la plus
+simple, identique sur ordinateur et iPhone) et une **extension** Manifest V3
+(Chrome, Edge, Brave, Firefox, Safari macOS/iOS).
 
 ## Ce que ça fait
 
@@ -23,29 +23,42 @@ Un seul code (Manifest V3) fonctionne sur **Chrome, Edge, Brave, Firefox** et
 
 ## Installation
 
-### Chrome / Edge / Brave
-1. `chrome://extensions` (ou `edge://extensions`)
-2. Activer le **mode développeur**
-3. **Charger l'extension non empaquetée** → sélectionner ce dossier
+> **Recommandé : le userscript.** Même méthode sur ordinateur et iPhone, aucune
+> compilation, et il **se met à jour tout seul**.
 
-### Firefox (desktop & Android)
-1. `about:debugging#/runtime/this-firefox`
-2. **Charger un module complémentaire temporaire** → choisir `manifest.json`
-   (temporaire = jusqu'au redémarrage ; pour du permanent il faut signer le `.xpi`
-   sur [addons.mozilla.org](https://addons.mozilla.org))
+Lien du script (à ouvrir / coller) :
 
-### iPhone / Safari — le plus simple (sans Xcode)
-Utilise la **version userscript** : installe l'app gratuite **« Userscripts »**,
-colle le script, c'est fini. Aucun Mac, aucune compilation, pas d'expiration.
-Voir **[`userscript/README.md`](userscript/README.md)**.
+```
+https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/userscript/utub-short-kill.user.js
+```
 
-### Safari en vraie extension (macOS & iPhone, avec Xcode)
-Si tu veux le rendu « app » complet (page d'options + popup), tu peux emballer
-l'extension avec Xcode : voir **[`safari/README.md`](safari/README.md)**.
+### Ordinateur — Chrome, Edge, Brave, Firefox, Safari
+1. Installe **Tampermonkey** (gratuit) depuis le magasin d'extensions de ton navigateur.
+2. Ouvre le lien du script ci-dessus → Tampermonkey affiche une page **« Installer »** → clique **Installer**.
+3. Va sur `youtube.com` et recharge la page.
+
+### iPhone — Safari
+Installe l'app gratuite **« Userscripts »**, active-la dans *Réglages → Safari →
+Extensions*, puis colle le script. Guide pas-à-pas :
+**[`userscript/README.md`](userscript/README.md)**.
+
+> **Réglages (dans les deux cas)** : un bouton **⚙️** apparaît en bas à droite des
+> pages YouTube et ouvre le panneau d'options (persistant, il survit aux mises à jour).
+
+<details>
+<summary><b>Alternative — installer la « vraie » extension</b> (rendu app : page d'options + popup)</summary>
+
+- **Chrome / Edge / Brave** : `chrome://extensions` → activer le **mode développeur** → *Charger l'extension non empaquetée* → sélectionner ce dossier.
+- **Firefox** : `about:debugging#/runtime/this-firefox` → *Charger un module complémentaire temporaire* → `manifest.json` (temporaire jusqu'au redémarrage).
+- **Safari macOS / iPhone (avec Xcode)** : voir **[`safari/README.md`](safari/README.md)**.
+</details>
 
 ## Réglages
 
-Clic sur l'icône → **Réglages…**, ou via la page d'options de l'extension :
+- **Userscript** : bouton **⚙️** en bas à droite des pages YouTube.
+- **Extension** : clic sur l'icône de la barre d'outils → **Réglages…** (page d'options) + popup.
+
+Options disponibles (dans les deux cas) :
 
 - **Extension active** — coupe tout d'un coup.
 - **Masquer les Shorts** — masquage dans les feeds/recherche/reco.
@@ -62,8 +75,8 @@ Clic sur l'icône → **Réglages…**, ou via la page d'options de l'extension 
 - **Longueur minimale des réponses** — friction ajustable (défaut : 15 caractères).
 - **Les 3 questions** — entièrement personnalisables.
 
-Le popup de la barre d'outils affiche l'état (verrouillé / minutes restantes) et
-permet de **re-verrouiller immédiatement**.
+Le popup de l'extension (et le panneau ⚙️ du userscript) permettent aussi de
+**re-verrouiller immédiatement**.
 
 ## Comment marche le blocage
 
@@ -78,23 +91,25 @@ permet de **re-verrouiller immédiatement**.
 ## Structure
 
 ```
-manifest.json            Manifest V3 (content script, options, popup, icônes)
+userscript/              Version 1-fichier (userscript) — install la plus simple
+manifest.json            Extension Manifest V3 (content script, options, popup, icônes)
 src/common/defaults.js   Réglages par défaut + accès stockage (API unifiée)
 src/content/
   preload.css            Masquage synchrone anti-flash sur /shorts
   shorts.css             Masquage des points d'entrée et étagères Shorts
-  gate.css               Style de la fenêtre des 3 questions
+  gate.css               Style de la fenêtre des 3 questions + minuteur
   main.js                Masquage dynamique + garde d'accès + fenêtre questions
-src/options/             Page de réglages
-src/popup/               Popup de la barre d'outils
+src/options/             Page de réglages (extension)
+src/popup/               Popup de la barre d'outils (extension)
 icons/                   Icônes générées (tools/make_icons.py)
-safari/                  Notice de portage Safari/iOS
+safari/                  Notice de portage Safari/iOS (Xcode)
+tests/                   Tests Playwright + contrôle de syntaxe
+tools/diagnose.js        Diagnostic des sélecteurs sur le vrai YouTube
 ```
 
 ## Développement
 
-- Recharger l'extension après modification (bouton *recharger* de la page
-  extensions).
+- Recharger l'extension après modification (bouton *recharger* de la page extensions).
 - Régénérer les icônes : `python3 tools/make_icons.py`.
 
 ### Tests
@@ -123,6 +138,6 @@ navigateur (F12) sur une page YouTube et colle le contenu de
 - Vise **YouTube dans le navigateur** (y compris Safari iOS), **pas l'application
   YouTube native** — une app installée ne peut pas être modifiée.
 - YouTube change régulièrement son HTML : si un type de Short réapparaît, il suffit
-  d'ajuster les sélecteurs dans `src/content/shorts.css` / `main.js`.
+  d'ajuster les sélecteurs (voir *Diagnostic* ci-dessus).
 - Le déblocage repose sur de la friction volontaire, pas sur un verrou
   infranchissable (désactivable depuis les réglages).
