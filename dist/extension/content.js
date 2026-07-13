@@ -381,14 +381,12 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     "ytm-video-with-context-renderer",
     "ytm-media-item"
   ];
-  var LOGO_SVG = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2"/><path d="M10.2 8.6l5 3.4-5 3.4z" fill="currentColor"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   function h(tag, props, kids) {
     const e = document.createElement(tag);
     if (props) {
       Object.keys(props).forEach(function(k) {
         if (k === "class") e.className = props[k];
         else if (k === "text") e.textContent = props[k];
-        else if (k === "html") e.innerHTML = props[k];
         else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), props[k]);
         else e.setAttribute(k, props[k]);
       });
@@ -397,6 +395,40 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       if (c) e.appendChild(c);
     });
     return e;
+  }
+  function makeLogo() {
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("aria-hidden", "true");
+    const circle = document.createElementNS(NS, "circle");
+    circle.setAttribute("cx", "12");
+    circle.setAttribute("cy", "12");
+    circle.setAttribute("r", "9.2");
+    circle.setAttribute("stroke", "currentColor");
+    circle.setAttribute("stroke-width", "2");
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", "M10.2 8.6l5 3.4-5 3.4z");
+    path.setAttribute("fill", "currentColor");
+    const line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", "5.5");
+    line.setAttribute("y1", "5.5");
+    line.setAttribute("x2", "18.5");
+    line.setAttribute("y2", "18.5");
+    line.setAttribute("stroke", "currentColor");
+    line.setAttribute("stroke-width", "2");
+    line.setAttribute("stroke-linecap", "round");
+    svg.appendChild(circle);
+    svg.appendChild(path);
+    svg.appendChild(line);
+    return svg;
+  }
+  function logoSpan() {
+    const span = h("span", { class: "usk-logo" });
+    const svg = makeLogo();
+    if (svg) span.appendChild(svg);
+    return span;
   }
   function createApp(storage) {
     let config = DEFAULTS;
@@ -638,7 +670,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       });
       const card = h("div", { class: "usk-card" }, [
         h("div", { class: "usk-head" }, [
-          h("span", { class: "usk-logo", html: LOGO_SVG }),
+          logoSpan(),
           h("h1", { class: "usk-title", text: "Es-tu s\xFBr de vouloir regarder des Shorts ?" })
         ]),
         h("p", {
@@ -746,7 +778,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       lockBtn.disabled = false;
       const card = h("div", { class: "usk-card" }, [
         h("div", { class: "usk-head" }, [
-          h("span", { class: "usk-logo", html: LOGO_SVG }),
+          logoSpan(),
           h("h1", { class: "usk-title", text: "R\xE9glages" })
         ]),
         toggleRow("enabled", "Extension active"),

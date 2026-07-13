@@ -48,5 +48,17 @@ try {
   failures++;
 }
 
+// YouTube impose les Trusted Types : toute assignation via innerHTML échoue.
+console.log("[check] pas de .innerHTML (incompatible Trusted Types de YouTube)");
+for (const f of ["src/core/app.js", "dist/utub-short-kill.user.js", "dist/extension/content.js"]) {
+  const txt = readFileSync(join(ROOT, f), "utf8");
+  if (/\.innerHTML\b/.test(txt)) {
+    console.log("  ✗ innerHTML interdit dans " + f);
+    failures++;
+  } else {
+    console.log("  ✓ " + f);
+  }
+}
+
 console.log(failures === 0 ? "\n[check] OK ✅" : "\n[check] " + failures + " échec(s) ❌");
 process.exit(failures === 0 ? 0 : 1);
