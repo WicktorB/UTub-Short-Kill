@@ -1,5 +1,6 @@
-// Teste le userscript BUILDÉ (dist/) dans un vrai Chromium, sur une origine HTTP
-// réelle (localStorage + pushState fonctionnels).
+// Teste le content script BUILDÉ de l'extension (dist/extension/content.js).
+// Sans `chrome` dans la page, l'adaptateur de stockage no-op et le cœur tourne
+// avec les réglages par défaut — on vérifie le comportement (masquage, garde…).
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -7,7 +8,7 @@ import { dirname, join } from "node:path";
 import { startServer, FIXTURE, CHROMIUM_EXE } from "./_server.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const script = readFileSync(join(ROOT, "dist/utub-short-kill.user.js"), "utf8");
+const script = readFileSync(join(ROOT, "dist/extension/content.js"), "utf8");
 
 let failures = 0;
 const errors = [];
@@ -37,39 +38,43 @@ const disp = (sel) =>
 console.log("\n[Chargement]");
 check("aucune erreur JS", errors.length === 0);
 check("CSS injecté", await page.evaluate(() => !!document.getElementById("usk-style")));
-check("hooks de test exposés", await page.evaluate(() => !!window.__USK_TEST));
+check("cœur initialisé (hooks)", await page.evaluate(() => !!window.__USK_TEST));
 
-console.log("\n[Masquage]");
+console.log("\n[Chemins]");
+const paths = await page.evaluate(() => {
+  const t = window.__USK_TEST;
+  return {
+    a: t.isShortsPath("/shorts/abc"),
+    b: t.isChannelPath("/@foo/shorts"),
+    c: t.isChannelPath("/results"),
+    d: t.shortsIdFromPath("/shorts/abc123?x=1"),
+    e: t.formatTime(65)
+  };
+});
+check("isShortsPath /shorts", paths.a === true);
+check("isChannelPath /@foo/shorts", paths.b === true);
+check("isChannelPath /results = false", paths.c === false);
+check("shortsIdFromPath -> abc123", paths.d === "abc123");
+check("formatTime 65 -> 1:05", paths.e === "1:05");
+
+console.log("\n[Masquage — hors chaîne]");
 check("guide Shorts masqué", (await disp("#guide-shorts")) === "none");
+check("guide Accueil visible", (await disp("#guide-home")) !== "none");
 check("étagère reel masquée", (await disp("#reel-shelf")) === "none");
 check("vignette lockup masquée", (await disp("#lockup")) === "none");
 check("short en grille masqué", (await disp("#rich-short")) === "none");
-check("vidéo normale visible", (await disp("#vid-normal")) !== "none");
+check("section Shorts masquée", (await disp("#rich-section")) === "none");
+check("vidéo en grille visible", (await disp("#rich-normal")) !== "none");
 
-console.log("\n[Bouton ⚙️]");
+console.log("\n[Exception chaîne]");
+// L'étagère reel est masquée par CSS uniquement (pas par la classe JS) : c'est
+// le bon témoin pour vérifier la règle :not([data-usk-channel]).
+await page.evaluate(() => document.documentElement.setAttribute("data-usk-channel", "1"));
+check("étagère reel visible sur chaîne (CSS)", (await disp("#reel-shelf")) !== "none");
+await page.evaluate(() => document.documentElement.removeAttribute("data-usk-channel"));
+
+console.log("\n[Bouton ⚙️ + navigation → 3 questions]");
 check("bouton ⚙️ présent", await page.evaluate(() => !!document.getElementById("usk-gear")));
-check("bouton ⚙️ visible hors Shorts", (await disp("#usk-gear")) === "flex");
-
-console.log("\n[Réglages persistants]");
-await page.evaluate(() => window.__USK_TEST.saveConfig({ unlockMinutes: 9, minAnswerLength: 3 }));
-check("config appliquée en mémoire", await page.evaluate(() => window.__USK_TEST.getConfig().unlockMinutes === 9));
-check(
-  "config persistée dans localStorage",
-  await page.evaluate(() => JSON.parse(localStorage.getItem("usk_config")).unlockMinutes === 9)
-);
-check("loadConfig relit la valeur", await page.evaluate(async () => (await window.__USK_TEST.loadConfig()).unlockMinutes === 9));
-
-console.log("\n[Panneau de réglages]");
-await page.evaluate(() => window.__USK_TEST.openSettings());
-check("panneau ouvert", await page.evaluate(() => !!document.getElementById("usk-settings")));
-check(
-  "cases à cocher présentes",
-  await page.evaluate(() => document.querySelectorAll("#usk-settings input[type=checkbox]").length >= 6)
-);
-await page.evaluate(() => window.__USK_TEST.closeSettings());
-check("panneau fermé", await page.evaluate(() => !document.getElementById("usk-settings")));
-
-console.log("\n[Navigation → 3 questions → minuteur]");
 await page.evaluate(() => history.pushState({}, "", "/shorts/xyz"));
 await page.waitForTimeout(200);
 check("fenêtre 3 questions affichée", await page.evaluate(() => !!document.getElementById("usk-gate")));
@@ -85,16 +90,7 @@ await page.evaluate(() => {
 });
 await page.waitForTimeout(150);
 check("gate retiré après déblocage", await page.evaluate(() => !document.getElementById("usk-gate")));
-check("déblocage persisté", await page.evaluate(() => parseInt(localStorage.getItem("usk_unlocked_until") || "0", 10) > Date.now()));
-check("minuteur affiché", await page.evaluate(() => !!document.getElementById("usk-timer")));
-
-console.log("\n[Re-verrouillage manuel]");
-await page.evaluate(() => {
-  window.__USK_TEST.openSettings();
-  for (const b of document.querySelectorAll("#usk-settings .usk-btn")) if (/Verrouiller/.test(b.textContent)) b.click();
-});
-await page.waitForTimeout(150);
-check("re-verrouillé → 3 questions ré-affichées", await page.evaluate(() => !!document.getElementById("usk-gate")));
+check("minuteur affiché sur un Short débloqué", await page.evaluate(() => !!document.getElementById("usk-timer")));
 
 if (errors.length) {
   console.log("\nErreurs :");
@@ -103,5 +99,5 @@ if (errors.length) {
 
 await browser.close();
 await srv.close();
-console.log("\n" + (failures === 0 ? "USERSCRIPT (buildé) OK ✅" : failures + " échec(s) ❌"));
+console.log("\n" + (failures === 0 ? "EXTENSION (buildée) OK ✅" : failures + " échec(s) ❌"));
 process.exit(failures === 0 ? 0 : 1);

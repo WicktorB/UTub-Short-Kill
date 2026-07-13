@@ -1,8 +1,9 @@
 # Version « userscript » (iPhone sans Xcode)
 
-`utub-short-kill.user.js` est **toute l'extension condensée en un seul fichier**
-(masquage des Shorts, 3 questions, minuteur, exception chaînes). On l'installe
-via un gestionnaire de userscripts — **sans Xcode, sans Mac, sans expiration**.
+Le userscript (**`dist/utub-short-kill.user.js`**, généré depuis `src/`) est **toute
+l'appli condensée en un seul fichier** (masquage des Shorts, 3 questions, minuteur,
+exception chaînes). On l'installe via un gestionnaire de userscripts — **sans Xcode,
+sans Mac, sans expiration**.
 
 ## 📱 iPhone (Safari) — le plus simple
 
@@ -14,7 +15,7 @@ via un gestionnaire de userscripts — **sans Xcode, sans Mac, sans expiration**
 4. **Ajoute le script** : ouvre ce lien brut dans Safari, sélectionne tout, copie :
 
    ```
-   https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/userscript/utub-short-kill.user.js
+   https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/dist/utub-short-kill.user.js
    ```
 
    Puis dans Userscripts → **+** → nouveau script → **colle** → enregistre.
@@ -39,7 +40,8 @@ minuteur, l'exception chaînes, durée de déblocage, longueur des réponses, é
 les questions, et **« Verrouiller maintenant »**). Les réglages sont **stockés
 dans le navigateur** — ils **survivent aux mises à jour** du script.
 
-Le bloc `DEFAULTS` en haut du fichier ne sert qu'à définir les valeurs d'usine.
+Les valeurs d'usine sont définies dans `src/core/config.js` (le fichier `.user.js`
+est **généré** — on ne l'édite pas à la main).
 
 ## 🔄 Mettre à jour
 
@@ -49,9 +51,12 @@ vérification des mises à jour. Tes réglages (stockés à part) sont conservé
 
 ## Extension vs userscript — que choisir ?
 
-| | Extension (dossier / Xcode) | Userscript (ce fichier) |
+Les deux formats sont **générés depuis le même code** (`src/core/`) : même
+comportement, mêmes réglages via le bouton **⚙️**.
+
+| | Extension (`dist/extension/`) | Userscript (`dist/…user.js`) |
 | --- | --- | --- |
-| iPhone | Xcode + Mac, re-signer /7 j | **App gratuite, rien à compiler** |
-| Desktop | « non empaquetée » ou magasin | Tampermonkey/Violentmonkey |
-| Réglages | Page d'options + popup | **Panneau ⚙️ intégré (persistant)** |
-| Idéal pour | Un rendu « app » complet | **La simplicité, surtout sur iPhone** |
+| iPhone | Xcode + Mac (lourd) | **App « Userscripts », rien à compiler** |
+| Desktop | à charger dans le navigateur (aucune app tierce) | Tampermonkey/Violentmonkey |
+| Mises à jour | manuelles (re-télécharger) | **automatiques** (`@updateURL`) |
+| Idéal pour | éviter toute app tierce sur ordi | **la simplicité, surtout sur iPhone** |

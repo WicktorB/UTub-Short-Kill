@@ -1,4 +1,4 @@
-// Contrôle statique : syntaxe JS + validité du manifest. Aucun navigateur requis.
+// Contrôle statique : syntaxe JS (source + bundles) + validité du manifest buildé.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -7,15 +7,19 @@ import { dirname, join } from "node:path";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const JS_FILES = [
-  "src/common/defaults.js",
-  "src/content/main.js",
-  "src/options/options.js",
-  "src/popup/popup.js",
-  "userscript/utub-short-kill.user.js",
+  "src/core/config.js",
+  "src/core/app.js",
+  "src/platform/storage-extension.js",
+  "src/platform/storage-userscript.js",
+  "src/entry/extension.js",
+  "src/entry/userscript.js",
+  "build/build.mjs",
+  "dist/utub-short-kill.user.js",
+  "dist/extension/content.js",
   "tools/diagnose.js",
   "tests/check.mjs",
   "tests/_server.mjs",
-  "tests/dom.test.mjs",
+  "tests/extension.test.mjs",
   "tests/userscript.test.mjs"
 ];
 
@@ -32,11 +36,12 @@ for (const f of JS_FILES) {
   }
 }
 
-console.log("[check] manifest.json");
+console.log("[check] dist/extension/manifest.json");
 try {
-  const m = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
+  const m = JSON.parse(readFileSync(join(ROOT, "dist/extension/manifest.json"), "utf8"));
   if (m.manifest_version !== 3) throw new Error("manifest_version doit valoir 3");
   if (!m.content_scripts || !m.content_scripts.length) throw new Error("content_scripts manquant");
+  if (m.content_scripts[0].js[0] !== "content.js") throw new Error("content.js attendu");
   console.log("  ✓ manifest.json (v" + m.version + ")");
 } catch (e) {
   console.log("  ✗ manifest.json — " + e.message);

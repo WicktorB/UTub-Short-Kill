@@ -2,24 +2,25 @@
 
 Safari ne charge pas directement un dossier d'extension : il faut l'**envelopper
 dans une petite app** avec Xcode. Le convertisseur d'Apple le fait automatiquement
-à partir de ce projet.
+à partir de l'extension buildée (`dist/extension/`).
 
-Prérequis : **macOS + Xcode** (gratuit sur le Mac App Store) et les *Command Line
-Tools* (`xcode-select --install`).
+Prérequis : **macOS + Xcode** (gratuit sur le Mac App Store), les *Command Line
+Tools* (`xcode-select --install`) et **Node.js** (pour builder l'extension).
 
 ## 1. Convertir l'extension
 
-Le plus simple, depuis la racine du dépôt :
+Le plus simple, depuis la racine du dépôt (le script build l'extension au besoin) :
 
 ```bash
 bash safari/convert.sh
 ```
 
 <details>
-<summary>…ou la commande complète à la main</summary>
+<summary>…ou à la main</summary>
 
 ```bash
-xcrun safari-web-extension-converter . \
+npm install && npm run build      # génère dist/extension
+xcrun safari-web-extension-converter dist/extension \
   --project-location safari/build \
   --app-name "UTub Short Kill" \
   --bundle-identifier com.victorbauchet.utubshortkill \
