@@ -246,6 +246,13 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
   opacity: 1;
   transform: scale(1.06);
 }
+/* Sur mobile, dégager le bouton de la barre de navigation du bas de YouTube. */
+@media (max-width: 900px) {
+  #usk-gear {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+    opacity: 0.85;
+  }
+}
 
 /* ============================================================= */
 /* Toast                                                         */

@@ -1,6 +1,6 @@
 {
   "name": "utub-short-kill",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Masque et protège l'accès aux YouTube Shorts (extension + userscript).",
   "type": "module",

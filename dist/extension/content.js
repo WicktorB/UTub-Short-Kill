@@ -248,6 +248,13 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
   opacity: 1;
   transform: scale(1.06);
 }
+/* Sur mobile, d\xE9gager le bouton de la barre de navigation du bas de YouTube. */
+@media (max-width: 900px) {
+  #usk-gear {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+    opacity: 0.85;
+  }
+}
 
 /* ============================================================= */
 /* Toast                                                         */
@@ -397,6 +404,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     let currentPath = null;
     let pauseTimer = null;
     let wasUnlocked = false;
+    let checkingWatchdog = null;
     async function reloadState() {
       config = mergeConfig(await storage.loadConfig());
       unlockedUntil = await storage.loadUnlock();
@@ -419,6 +427,17 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     function shortsIdFromPath(path) {
       const m = (path != null ? path : location.pathname).match(/^\/shorts\/([^/?#]+)/);
       return m ? m[1] : null;
+    }
+    function cameFromChannel(prevPath) {
+      if (isChannelPath(prevPath)) return true;
+      if (prevPath == null && document.referrer) {
+        try {
+          const ref = new URL(document.referrer);
+          if (ref.host === location.host && isChannelPath(ref.pathname)) return true;
+        } catch (e) {
+        }
+      }
+      return false;
     }
     function injectCSS() {
       if (document.getElementById("usk-style")) return;
@@ -452,8 +471,19 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       else document.documentElement.removeAttribute("data-usk-channel");
     }
     function markChecking(on) {
-      if (on) document.documentElement.setAttribute("data-usk-checking", "1");
-      else document.documentElement.removeAttribute("data-usk-checking");
+      if (on) {
+        document.documentElement.setAttribute("data-usk-checking", "1");
+        clearTimeout(checkingWatchdog);
+        checkingWatchdog = setTimeout(function() {
+          if (!document.getElementById("usk-gate")) {
+            document.documentElement.removeAttribute("data-usk-checking");
+            resumeVideos();
+          }
+        }, 2500);
+      } else {
+        document.documentElement.removeAttribute("data-usk-checking");
+        clearTimeout(checkingWatchdog);
+      }
     }
     function pauseVideos() {
       const doPause = function() {
@@ -494,7 +524,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
         markChecking(false);
         return;
       }
-      if (config.allowFromChannels && isChannelPath(prevPath)) {
+      if (config.allowFromChannels && cameFromChannel(prevPath)) {
         markChecking(false);
         return;
       }
@@ -540,7 +570,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
           h("span", { class: "usk-timer-dot" }),
           h("span", { class: "usk-timer-text" })
         ]);
-        (document.body || document.documentElement).appendChild(el);
+        document.documentElement.appendChild(el);
       }
       const totalSec = Math.ceil(ms / 1e3);
       el.querySelector(".usk-timer-text").textContent = formatTime(totalSec);
@@ -615,7 +645,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
         form
       ]);
       const wrap = h("div", { id: "usk-gate", class: "usk-ov", role: "dialog", "aria-modal": "true" }, [card]);
-      (document.body || document.documentElement).appendChild(wrap);
+      document.documentElement.appendChild(wrap);
       validate();
       if (fields[0]) fields[0].focus();
     }
@@ -625,8 +655,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     }
     function ensureGear() {
       if (document.getElementById("usk-gear")) return;
-      if (!document.body) return;
-      document.body.appendChild(
+      document.documentElement.appendChild(
         h("div", { id: "usk-gear", title: "R\xE9glages UTub Short Kill", text: "\u2699\uFE0F", onclick: openSettings })
       );
     }
@@ -639,7 +668,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       const old = document.getElementById("usk-toast");
       if (old) old.remove();
       const t = h("div", { id: "usk-toast", text: msg });
-      (document.body || document.documentElement).appendChild(t);
+      document.documentElement.appendChild(t);
       setTimeout(function() {
         if (t && t.parentNode) t.remove();
       }, 1600);
@@ -726,7 +755,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       ov.addEventListener("click", function(e) {
         if (e.target === ov) closeSettings();
       });
-      (document.body || document.documentElement).appendChild(ov);
+      document.documentElement.appendChild(ov);
     }
     function applyConfigChange() {
       if (!config.enabled || !config.hideShorts) unhideAll();
