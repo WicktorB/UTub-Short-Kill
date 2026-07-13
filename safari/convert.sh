@@ -17,8 +17,15 @@ if ! xcrun --find safari-web-extension-converter >/dev/null 2>&1; then
   exit 1
 fi
 
+# L'extension est buildée dans dist/extension — la générer si elle manque.
+if [ ! -f dist/extension/manifest.json ]; then
+  echo "ℹ️  dist/extension absent — build en cours (npm install && npm run build)…"
+  npm install
+  npm run build
+fi
+
 echo "🔨 Conversion en projet Xcode dans safari/build ..."
-xcrun safari-web-extension-converter . \
+xcrun safari-web-extension-converter dist/extension \
   --project-location safari/build \
   --app-name "UTub Short Kill" \
   --bundle-identifier com.victorbauchet.utubshortkill \

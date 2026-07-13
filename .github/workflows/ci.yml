@@ -21,5 +21,13 @@ jobs:
       - name: Installer Chromium (Playwright)
         run: npx playwright install --with-deps chromium
 
+      - name: Build (userscript + extension)
+        run: npm run build
+
+      - name: Vérifier que dist/ est à jour
+        run: |
+          git diff --exit-code -- dist \
+            || { echo "::error::dist/ n'est pas à jour — lance 'npm run build' et committe le résultat."; exit 1; }
+
       - name: Contrôles + tests
         run: npm test
