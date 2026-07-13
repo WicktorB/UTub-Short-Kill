@@ -48,6 +48,7 @@ export function createApp(storage) {
   let currentPath = null;
   let pauseTimer = null;
   let wasUnlocked = false;
+  let checkingWatchdog = null;
 
   // -------------------------------------------------------- Stockage / état
 
@@ -78,6 +79,22 @@ export function createApp(storage) {
   function shortsIdFromPath(path) {
     const m = (path != null ? path : location.pathname).match(/^\/shorts\/([^/?#]+)/);
     return m ? m[1] : null;
+  }
+
+  // Un Short vient-il d'une chaîne ? En navigation interne, on connaît la page
+  // précédente ; en chargement direct, on se fie au référent (utile sur mobile,
+  // où l'ouverture d'un Short depuis une chaîne recharge parfois la page).
+  function cameFromChannel(prevPath) {
+    if (isChannelPath(prevPath)) return true;
+    if (prevPath == null && document.referrer) {
+      try {
+        const ref = new URL(document.referrer);
+        if (ref.host === location.host && isChannelPath(ref.pathname)) return true;
+      } catch (e) {
+        /* ignore */
+      }
+    }
+    return false;
   }
 
   // ------------------------------------------------------------- Masquage
@@ -121,8 +138,21 @@ export function createApp(storage) {
   // -------------------------------------------------------- Verrou / vidéo
 
   function markChecking(on) {
-    if (on) document.documentElement.setAttribute("data-usk-checking", "1");
-    else document.documentElement.removeAttribute("data-usk-checking");
+    if (on) {
+      document.documentElement.setAttribute("data-usk-checking", "1");
+      clearTimeout(checkingWatchdog);
+      // Filet de sécurité : ne JAMAIS laisser la page bloquée (lecteur masqué)
+      // si la fenêtre des questions n'a pas pu s'afficher.
+      checkingWatchdog = setTimeout(function () {
+        if (!document.getElementById("usk-gate")) {
+          document.documentElement.removeAttribute("data-usk-checking");
+          resumeVideos();
+        }
+      }, 2500);
+    } else {
+      document.documentElement.removeAttribute("data-usk-checking");
+      clearTimeout(checkingWatchdog);
+    }
   }
 
   function pauseVideos() {
@@ -169,7 +199,7 @@ export function createApp(storage) {
       markChecking(false);
       return;
     }
-    if (config.allowFromChannels && isChannelPath(prevPath)) {
+    if (config.allowFromChannels && cameFromChannel(prevPath)) {
       markChecking(false);
       return;
     }
@@ -219,7 +249,7 @@ export function createApp(storage) {
         h("span", { class: "usk-timer-dot" }),
         h("span", { class: "usk-timer-text" })
       ]);
-      (document.body || document.documentElement).appendChild(el);
+      document.documentElement.appendChild(el);
     }
     const totalSec = Math.ceil(ms / 1000);
     el.querySelector(".usk-timer-text").textContent = formatTime(totalSec);
@@ -301,7 +331,7 @@ export function createApp(storage) {
       form
     ]);
     const wrap = h("div", { id: "usk-gate", class: "usk-ov", role: "dialog", "aria-modal": "true" }, [card]);
-    (document.body || document.documentElement).appendChild(wrap);
+    document.documentElement.appendChild(wrap);
     validate();
     if (fields[0]) fields[0].focus();
   }
@@ -315,8 +345,7 @@ export function createApp(storage) {
 
   function ensureGear() {
     if (document.getElementById("usk-gear")) return;
-    if (!document.body) return;
-    document.body.appendChild(
+    document.documentElement.appendChild(
       h("div", { id: "usk-gear", title: "Réglages UTub Short Kill", text: "⚙️", onclick: openSettings })
     );
   }
@@ -330,7 +359,7 @@ export function createApp(storage) {
     const old = document.getElementById("usk-toast");
     if (old) old.remove();
     const t = h("div", { id: "usk-toast", text: msg });
-    (document.body || document.documentElement).appendChild(t);
+    document.documentElement.appendChild(t);
     setTimeout(function () {
       if (t && t.parentNode) t.remove();
     }, 1600);
@@ -426,7 +455,7 @@ export function createApp(storage) {
     ov.addEventListener("click", function (e) {
       if (e.target === ov) closeSettings();
     });
-    (document.body || document.documentElement).appendChild(ov);
+    document.documentElement.appendChild(ov);
   }
 
   // ----------------------------------------------------------------- Setup
