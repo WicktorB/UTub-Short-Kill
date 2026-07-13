@@ -49,6 +49,7 @@ export function createApp(storage) {
   let pauseTimer = null;
   let wasUnlocked = false;
   let checkingWatchdog = null;
+  let lastRedirect = { id: null, at: 0 };
 
   // -------------------------------------------------------- Stockage / état
 
@@ -220,7 +221,11 @@ export function createApp(storage) {
     removeGate();
     if (config.openMode === "watch") {
       const id = shortsIdFromPath(path);
-      if (id) {
+      // Garde anti-boucle : ne pas re-rediriger le même Short en rafale (si
+      // YouTube renvoyait /watch → /shorts, on éviterait un cycle infini).
+      const recent = lastRedirect.id === id && Date.now() - lastRedirect.at < 5000;
+      if (id && !recent) {
+        lastRedirect = { id: id, at: Date.now() };
         resumeVideos();
         location.replace("/watch?v=" + id);
         return;
@@ -346,7 +351,18 @@ export function createApp(storage) {
   function ensureGear() {
     if (document.getElementById("usk-gear")) return;
     document.documentElement.appendChild(
-      h("div", { id: "usk-gear", title: "Réglages UTub Short Kill", text: "⚙️", onclick: openSettings })
+      h("div", {
+        id: "usk-gear",
+        title: "Réglages UTub Short Kill",
+        text: "⚙️",
+        onclick: function () {
+          try {
+            openSettings();
+          } catch (e) {
+            /* ignore */
+          }
+        }
+      })
     );
   }
   function updateGear() {
@@ -478,8 +494,15 @@ export function createApp(storage) {
   }
 
   function setupNavigationHooks() {
+    // IMPORTANT : ce callback est appelé DANS history.pushState de YouTube.
+    // S'il lève une exception, il casse la navigation de YouTube (boucle de
+    // rechargement sur mobile). On l'isole donc systématiquement.
     const fire = function () {
-      handleNavigation();
+      try {
+        handleNavigation();
+      } catch (e) {
+        /* ne jamais casser la navigation de YouTube */
+      }
     };
     window.addEventListener("yt-navigate-finish", fire, true);
     window.addEventListener("yt-navigate-start", fire, true);
@@ -506,8 +529,12 @@ export function createApp(storage) {
   function observeMutations() {
     const obs = new MutationObserver(
       debounce(function () {
-        if (config.enabled && config.hideShorts) hideShortItems(document);
-        ensureGear();
+        try {
+          if (config.enabled && config.hideShorts) hideShortItems(document);
+          ensureGear();
+        } catch (e) {
+          /* ignore */
+        }
       }, 150)
     );
     obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -518,13 +545,27 @@ export function createApp(storage) {
     if (isShortsPath()) markChecking(true);
     await reloadState();
     storage.onChange(async function () {
-      await reloadState();
-      applyConfigChange();
+      try {
+        await reloadState();
+        applyConfigChange();
+      } catch (e) {
+        /* ignore */
+      }
     });
     setupNavigationHooks();
     observeMutations();
-    setInterval(tickTimer, 1000);
-    handleNavigation();
+    setInterval(function () {
+      try {
+        tickTimer();
+      } catch (e) {
+        /* ignore */
+      }
+    }, 1000);
+    try {
+      handleNavigation();
+    } catch (e) {
+      /* ignore */
+    }
 
     // Hooks de test (sans effet en usage réel).
     window.__USK_TEST = {

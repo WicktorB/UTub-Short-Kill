@@ -405,6 +405,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     let pauseTimer = null;
     let wasUnlocked = false;
     let checkingWatchdog = null;
+    let lastRedirect = { id: null, at: 0 };
     async function reloadState() {
       config = mergeConfig(await storage.loadConfig());
       unlockedUntil = await storage.loadUnlock();
@@ -544,7 +545,9 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       removeGate();
       if (config.openMode === "watch") {
         const id = shortsIdFromPath(path);
-        if (id) {
+        const recent = lastRedirect.id === id && Date.now() - lastRedirect.at < 5e3;
+        if (id && !recent) {
+          lastRedirect = { id, at: Date.now() };
           resumeVideos();
           location.replace("/watch?v=" + id);
           return;
@@ -656,7 +659,17 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     function ensureGear() {
       if (document.getElementById("usk-gear")) return;
       document.documentElement.appendChild(
-        h("div", { id: "usk-gear", title: "R\xE9glages UTub Short Kill", text: "\u2699\uFE0F", onclick: openSettings })
+        h("div", {
+          id: "usk-gear",
+          title: "R\xE9glages UTub Short Kill",
+          text: "\u2699\uFE0F",
+          onclick: function() {
+            try {
+              openSettings();
+            } catch (e) {
+            }
+          }
+        })
       );
     }
     function updateGear() {
@@ -774,7 +787,10 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     }
     function setupNavigationHooks() {
       const fire = function() {
-        handleNavigation();
+        try {
+          handleNavigation();
+        } catch (e) {
+        }
       };
       window.addEventListener("yt-navigate-finish", fire, true);
       window.addEventListener("yt-navigate-start", fire, true);
@@ -800,8 +816,11 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
     function observeMutations() {
       const obs = new MutationObserver(
         debounce(function() {
-          if (config.enabled && config.hideShorts) hideShortItems(document);
-          ensureGear();
+          try {
+            if (config.enabled && config.hideShorts) hideShortItems(document);
+            ensureGear();
+          } catch (e) {
+          }
         }, 150)
       );
       obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -811,13 +830,24 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       if (isShortsPath()) markChecking(true);
       await reloadState();
       storage.onChange(async function() {
-        await reloadState();
-        applyConfigChange();
+        try {
+          await reloadState();
+          applyConfigChange();
+        } catch (e) {
+        }
       });
       setupNavigationHooks();
       observeMutations();
-      setInterval(tickTimer, 1e3);
-      handleNavigation();
+      setInterval(function() {
+        try {
+          tickTimer();
+        } catch (e) {
+        }
+      }, 1e3);
+      try {
+        handleNavigation();
+      } catch (e) {
+      }
       window.__USK_TEST = {
         getConfig: function() {
           return config;
