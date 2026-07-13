@@ -1,5 +1,7 @@
 # UTub Short Kill
 
+[![CI](https://github.com/WicktorB/YouTube-Short-Kill/actions/workflows/ci.yml/badge.svg)](https://github.com/WicktorB/YouTube-Short-Kill/actions/workflows/ci.yml)
+
 Extension de navigateur qui **supprime les YouTube Shorts** de partout — accueil,
 abonnements, recherche, recommandations, barre latérale, barre de navigation
 mobile — **sauf sur la page d'une chaîne de créateur**. Pour ouvrir un Short, il
@@ -94,6 +96,27 @@ safari/                  Notice de portage Safari/iOS
 - Recharger l'extension après modification (bouton *recharger* de la page
   extensions).
 - Régénérer les icônes : `python3 tools/make_icons.py`.
+
+### Tests
+
+Suite de tests jouée dans un vrai Chromium (Playwright) + contrôle de syntaxe :
+
+```bash
+npm install
+npx playwright install chromium   # 1re fois
+npm test                          # contrôle statique + tests extension + userscript
+```
+
+La CI GitHub Actions (`.github/workflows/ci.yml`) rejoue tout à chaque push / PR.
+
+### Diagnostic des sélecteurs
+
+YouTube change régulièrement son HTML. Pour vérifier ce que le script attrape sur
+**ton** YouTube (compte connecté, langue, tests A/B) : ouvre la console du
+navigateur (F12) sur une page YouTube et colle le contenu de
+[`tools/diagnose.js`](tools/diagnose.js). Il liste les vrais conteneurs de Shorts
+à cibler — utile pour ajuster `src/content/shorts.css` / `main.js` /
+`userscript/…` si un type de Short réapparaît.
 
 ## Limites connues
 

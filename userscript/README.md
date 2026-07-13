@@ -14,7 +14,7 @@ via un gestionnaire de userscripts — **sans Xcode, sans Mac, sans expiration**
 4. **Ajoute le script** : ouvre ce lien brut dans Safari, sélectionne tout, copie :
 
    ```
-   https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/claude/youtube-shorts-restriction-8xxjz1/userscript/utub-short-kill.user.js
+   https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/userscript/utub-short-kill.user.js
    ```
 
    Puis dans Userscripts → **+** → nouveau script → **colle** → enregistre.
@@ -33,14 +33,19 @@ empaquetée ».
 
 ## ⚙️ Régler les options
 
-Il n'y a pas de page de réglages ici : ouvre le script dans l'éditeur et modifie
-le bloc **`CONFIG`** tout en haut (durée de déblocage, longueur des réponses, les
-3 questions, `openMode`, etc.). Enregistre → rechargé au prochain chargement de page.
+Un **bouton ⚙️** discret apparaît en bas à droite des pages YouTube : il ouvre un
+**panneau de réglages** (activer/désactiver le masquage, les 3 questions, le
+minuteur, l'exception chaînes, durée de déblocage, longueur des réponses, éditer
+les questions, et **« Verrouiller maintenant »**). Les réglages sont **stockés
+dans le navigateur** — ils **survivent aux mises à jour** du script.
+
+Le bloc `DEFAULTS` en haut du fichier ne sert qu'à définir les valeurs d'usine.
 
 ## 🔄 Mettre à jour
 
-Quand le script évolue, recopie la nouvelle version depuis le lien brut
-par-dessus l'ancienne (ou réinstalle via Tampermonkey).
+Le script déclare `@updateURL`/`@downloadURL` → **Tampermonkey** propose la mise à
+jour automatiquement ; dans l'app **Userscripts** (iOS), utilise le bouton de
+vérification des mises à jour. Tes réglages (stockés à part) sont conservés.
 
 ## Extension vs userscript — que choisir ?
 
@@ -48,5 +53,5 @@ par-dessus l'ancienne (ou réinstalle via Tampermonkey).
 | --- | --- | --- |
 | iPhone | Xcode + Mac, re-signer /7 j | **App gratuite, rien à compiler** |
 | Desktop | « non empaquetée » ou magasin | Tampermonkey/Violentmonkey |
-| Réglages | Page d'options + popup | Bloc `CONFIG` en haut du fichier |
+| Réglages | Page d'options + popup | **Panneau ⚙️ intégré (persistant)** |
 | Idéal pour | Un rendu « app » complet | **La simplicité, surtout sur iPhone** |

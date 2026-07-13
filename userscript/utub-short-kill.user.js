@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         UTub Short Kill
 // @namespace    utub-short-kill
-// @version      1.0.0
-// @description  Masque les YouTube Shorts partout (sauf sur les chaînes) et protège leur accès par 3 questions, avec minuteur. Fonctionne dans Safari iOS via l'app « Userscripts », et sur desktop via Tampermonkey/Violentmonkey.
+// @version      1.1.0
+// @description  Masque les YouTube Shorts partout (sauf sur les chaînes) et protège leur accès par 3 questions, avec minuteur et panneau de réglages. Safari iOS (app « Userscripts ») + desktop (Tampermonkey/Violentmonkey).
 // @author       victor
 // @match        *://*.youtube.com/*
 // @match        *://youtube.com/*
 // @run-at       document-start
 // @grant        none
+// @downloadURL  https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/userscript/utub-short-kill.user.js
+// @updateURL    https://raw.githubusercontent.com/WicktorB/YouTube-Short-Kill/main/userscript/utub-short-kill.user.js
 // ==/UserScript==
 
 (function () {
@@ -16,17 +18,19 @@
   // Ne s'exécute que dans la fenêtre principale (pas les iframes intégrées).
   if (window.top !== window.self) return;
 
-  // ============================ RÉGLAGES ============================
-  // Modifie ces valeurs directement ici si besoin (dans l'éditeur de l'app).
-  var CONFIG = {
-    enabled: true, // extension active
-    hideShorts: true, // masquer les Shorts dans les feeds / recherche / reco
-    gateEnabled: true, // exiger les 3 questions pour accéder à un Short
-    showTimer: true, // afficher le minuteur pendant le visionnage
-    allowFromChannels: true, // exception : Shorts accessibles depuis une chaîne
-    openMode: "short", // "short" = lecteur Shorts | "watch" = lecteur normal
-    unlockMinutes: 5, // durée de déblocage après réussite
-    minAnswerLength: 15, // longueur minimale d'une réponse libre
+  // ===================== RÉGLAGES PAR DÉFAUT =======================
+  // Modifiables en direct via le bouton ⚙️ (stockés dans le navigateur),
+  // ou ici pour changer les valeurs d'usine.
+  var DEFAULTS = {
+    enabled: true,
+    hideShorts: true,
+    gateEnabled: true,
+    showTimer: true,
+    allowFromChannels: true,
+    showSettingsButton: true,
+    openMode: "short", // "short" | "watch"
+    unlockMinutes: 5,
+    minAnswerLength: 15,
     questions: [
       "Pourquoi veux-tu regarder des Shorts maintenant ?",
       "Combien de temps comptes-tu y passer, précisément ?",
@@ -35,6 +39,7 @@
   };
   // =================================================================
 
+  var CONFIG_KEY = "usk_config";
   var UNLOCK_KEY = "usk_unlocked_until";
 
   var SHORTS_ITEM_ANCESTORS = [
@@ -84,25 +89,41 @@
     'html:not([data-usk-channel="1"]) ytm-reel-shelf-renderer,',
     'html:not([data-usk-channel="1"]) grid-shelf-view-model:has(a[href^="/shorts/"]) { display: none !important; }',
 
-    /* Fenêtre des 3 questions */
-    "#usk-gate { --usk-accent:#ef4444; --usk-green:#22c55e; --usk-green-2:#16a34a; position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:radial-gradient(1200px 600px at 50% -10%, rgba(239,68,68,.14), transparent 60%), rgba(6,6,9,.86); backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,system-ui,sans-serif; color:#fafafa; }",
-    "#usk-gate * { box-sizing:border-box; }",
-    "#usk-gate .usk-card { width:100%; max-width:500px; max-height:92vh; overflow-y:auto; padding:30px 28px; background:linear-gradient(180deg, rgba(30,30,36,.96), rgba(18,18,22,.96)); border:1px solid rgba(255,255,255,.09); border-radius:22px; box-shadow:0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05); }",
-    "#usk-gate .usk-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }",
-    "#usk-gate .usk-logo { flex:none; width:34px; height:34px; color:var(--usk-accent); }",
-    "#usk-gate .usk-logo svg { width:100%; height:100%; display:block; }",
-    "#usk-gate .usk-title { margin:0; font-size:21px; font-weight:750; letter-spacing:-.01em; line-height:1.25; }",
-    "#usk-gate .usk-sub { margin:0 0 22px; font-size:14px; line-height:1.5; color:#a1a1aa; }",
-    "#usk-gate .usk-field { display:block; margin-bottom:16px; }",
-    "#usk-gate .usk-q { display:block; margin-bottom:8px; font-size:14.5px; font-weight:600; color:#e4e4e7; }",
-    "#usk-gate .usk-input { width:100%; resize:vertical; min-height:46px; padding:11px 13px; font-size:15px; font-family:inherit; color:#fafafa; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:12px; outline:none; }",
-    "#usk-gate .usk-input:focus { background:rgba(255,255,255,.06); border-color:var(--usk-accent); box-shadow:0 0 0 3px rgba(239,68,68,.22); }",
-    "#usk-gate .usk-actions { display:flex; gap:12px; margin-top:10px; }",
-    "#usk-gate .usk-btn { flex:1; padding:13px 16px; font-size:15px; font-weight:650; font-family:inherit; border:1px solid transparent; border-radius:12px; cursor:pointer; }",
-    "#usk-gate .usk-leave { flex:1.5; color:#052e14; background:linear-gradient(180deg,#34d399,var(--usk-green)); box-shadow:0 8px 20px rgba(34,197,94,.28); }",
-    "#usk-gate .usk-unlock { color:#fca5a5; background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.35); }",
-    "#usk-gate .usk-unlock:disabled { opacity:.4; cursor:not-allowed; }",
-    "#usk-gate .usk-hint { margin:12px 0 0; min-height:16px; font-size:13px; color:#fca5a5; text-align:center; }",
+    /* ---- Fenêtres modales (questions + réglages) : classe .usk-ov ---- */
+    ".usk-ov { --usk-accent:#ef4444; --usk-green:#22c55e; position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:radial-gradient(1200px 600px at 50% -10%, rgba(239,68,68,.14), transparent 60%), rgba(6,6,9,.86); backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,system-ui,sans-serif; color:#fafafa; }",
+    ".usk-ov * { box-sizing:border-box; }",
+    ".usk-ov .usk-card { width:100%; max-width:500px; max-height:92vh; overflow-y:auto; padding:28px 26px; background:linear-gradient(180deg, rgba(30,30,36,.97), rgba(18,18,22,.97)); border:1px solid rgba(255,255,255,.09); border-radius:22px; box-shadow:0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05); }",
+    ".usk-ov .usk-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }",
+    ".usk-ov .usk-logo { flex:none; width:32px; height:32px; color:var(--usk-accent); }",
+    ".usk-ov .usk-logo svg { width:100%; height:100%; display:block; }",
+    ".usk-ov .usk-title { margin:0; font-size:20px; font-weight:750; letter-spacing:-.01em; line-height:1.25; }",
+    ".usk-ov .usk-sub { margin:0 0 20px; font-size:14px; line-height:1.5; color:#a1a1aa; }",
+    ".usk-ov .usk-field { display:block; margin-bottom:16px; }",
+    ".usk-ov .usk-q { display:block; margin-bottom:8px; font-size:14.5px; font-weight:600; color:#e4e4e7; }",
+    ".usk-ov .usk-input { width:100%; resize:vertical; min-height:46px; padding:11px 13px; font-size:15px; font-family:inherit; color:#fafafa; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:12px; outline:none; }",
+    ".usk-ov .usk-input:focus { border-color:var(--usk-accent); box-shadow:0 0 0 3px rgba(239,68,68,.22); }",
+    ".usk-ov .usk-actions { display:flex; gap:12px; margin-top:14px; }",
+    ".usk-ov .usk-btn { flex:1; padding:12px 16px; font-size:15px; font-weight:650; font-family:inherit; border:1px solid transparent; border-radius:12px; cursor:pointer; }",
+    ".usk-ov .usk-leave { color:#052e14; background:linear-gradient(180deg,#34d399,var(--usk-green)); box-shadow:0 8px 20px rgba(34,197,94,.28); }",
+    ".usk-ov .usk-unlock { color:#fca5a5; background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.35); }",
+    ".usk-ov .usk-unlock:disabled { opacity:.4; cursor:not-allowed; }",
+    ".usk-ov .usk-hint { margin:12px 0 0; min-height:16px; font-size:13px; color:#fca5a5; text-align:center; }",
+    ".usk-ov .usk-gate-actions { flex:1.5; }",
+
+    /* Réglages : lignes label/contrôle */
+    ".usk-ov .usk-set-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.07); font-size:14px; }",
+    ".usk-ov .usk-set-row input[type=checkbox]{ width:20px; height:20px; flex:none; accent-color:var(--usk-accent); }",
+    ".usk-ov .usk-set-row input[type=number]{ width:80px; padding:7px 9px; color:#fafafa; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:8px; }",
+    ".usk-ov select { padding:7px 9px; color:#fafafa; background:rgba(40,40,46,.95); border:1px solid rgba(255,255,255,.14); border-radius:8px; font-family:inherit; }",
+    ".usk-ov .usk-set-qs { margin:14px 0 4px; }",
+    ".usk-ov .usk-set-q { width:100%; margin-top:8px; padding:9px 11px; color:#fafafa; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:10px; font-family:inherit; font-size:13.5px; }",
+
+    /* Bouton ⚙️ */
+    "#usk-gear { position:fixed; right:16px; bottom:16px; z-index:2147483645; width:42px; height:42px; border-radius:50%; display:none; align-items:center; justify-content:center; font-size:19px; cursor:pointer; color:#fff; background:rgba(9,9,12,.55); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:.4; transition:opacity .15s ease, transform .15s ease; }",
+    "#usk-gear:hover { opacity:1; transform:scale(1.06); }",
+
+    /* Toast */
+    "#usk-toast { position:fixed; bottom:74px; left:50%; transform:translateX(-50%); z-index:2147483647; padding:10px 16px; border-radius:999px; background:rgba(9,9,12,.92); color:#fff; font-family:-apple-system,system-ui,sans-serif; font-size:14px; border:1px solid rgba(255,255,255,.14); }",
 
     /* Minuteur */
     "#usk-timer { position:fixed; top:calc(env(safe-area-inset-top, 0px) + 12px); left:50%; transform:translateX(-50%); z-index:2147483646; pointer-events:none; display:flex; align-items:center; gap:8px; padding:6px 13px 6px 11px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,system-ui,sans-serif; font-size:13px; font-weight:650; font-variant-numeric:tabular-nums; letter-spacing:.02em; color:#fafafa; background:rgba(9,9,12,.55); border:1px solid rgba(255,255,255,.14); border-radius:999px; box-shadow:0 6px 20px rgba(0,0,0,.3); backdrop-filter:blur(10px) saturate(140%); -webkit-backdrop-filter:blur(10px) saturate(140%); opacity:.9; }",
@@ -112,12 +133,53 @@
     "@keyframes usk-pulse { 0% { box-shadow:0 0 0 0 rgba(255,255,255,.6); } 70% { box-shadow:0 0 0 7px rgba(255,255,255,0); } 100% { box-shadow:0 0 0 0 rgba(255,255,255,0); } }"
   ].join("\n");
 
+  // ----------------------------------------------------- petit helper DOM
+
+  function h(tag, props, kids) {
+    var e = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach(function (k) {
+        if (k === "class") e.className = props[k];
+        else if (k === "text") e.textContent = props[k];
+        else if (k === "html") e.innerHTML = props[k];
+        else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), props[k]);
+        else e.setAttribute(k, props[k]);
+      });
+    }
+    (kids || []).forEach(function (c) {
+      if (c) e.appendChild(c);
+    });
+    return e;
+  }
+
   // -------------------------------------------------------- État / stockage
 
+  var CONFIG = null;
   var currentPath = null;
   var pauseTimer = null;
   var unlockedUntil = 0;
   var wasUnlocked = false;
+
+  function loadConfig() {
+    var stored = {};
+    try {
+      stored = JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}") || {};
+    } catch (e) {
+      stored = {};
+    }
+    return Object.assign({}, DEFAULTS, stored);
+  }
+
+  function saveConfig(patch) {
+    var next = Object.assign({}, loadConfig(), patch);
+    try {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(next));
+    } catch (e) {
+      /* ignore */
+    }
+    CONFIG = next;
+    applyConfigChange();
+  }
 
   function getUnlockedUntil() {
     try {
@@ -152,9 +214,7 @@
 
   function injectCSS() {
     if (document.getElementById("usk-style")) return;
-    var style = document.createElement("style");
-    style.id = "usk-style";
-    style.textContent = CSS;
+    var style = h("style", { id: "usk-style", text: CSS });
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -175,6 +235,11 @@
       var item = closestItem(anchors[i]);
       if (item) item.classList.add("usk-hidden");
     }
+  }
+
+  function unhideAll() {
+    var hidden = document.querySelectorAll(".usk-hidden");
+    for (var i = 0; i < hidden.length; i++) hidden[i].classList.remove("usk-hidden");
   }
 
   function updateChannelFlag() {
@@ -224,6 +289,8 @@
       resumeVideos();
       removeGate();
     }
+    ensureGear();
+    updateGear();
     tickTimer();
   }
 
@@ -270,18 +337,18 @@
   }
   function formatTime(totalSec) {
     if (totalSec < 0) totalSec = 0;
-    var h = Math.floor(totalSec / 3600);
-    var m = Math.floor((totalSec % 3600) / 60);
-    var s = totalSec % 60;
-    return h > 0 ? h + ":" + pad(m) + ":" + pad(s) : m + ":" + pad(s);
+    var hh = Math.floor(totalSec / 3600);
+    var mm = Math.floor((totalSec % 3600) / 60);
+    var ss = totalSec % 60;
+    return hh > 0 ? hh + ":" + pad(mm) + ":" + pad(ss) : mm + ":" + pad(ss);
   }
   function renderTimer(ms) {
     var el = document.getElementById("usk-timer");
     if (!el) {
-      el = document.createElement("div");
-      el.id = "usk-timer";
-      el.setAttribute("aria-hidden", "true");
-      el.innerHTML = '<span class="usk-timer-dot"></span><span class="usk-timer-text"></span>';
+      el = h("div", { id: "usk-timer", "aria-hidden": "true" }, [
+        h("span", { class: "usk-timer-dot" }),
+        h("span", { class: "usk-timer-text" })
+      ]);
       (document.body || document.documentElement).appendChild(el);
     }
     var totalSec = Math.ceil(ms / 1000);
@@ -312,69 +379,9 @@
 
   function showGate(onSuccess) {
     removeGate();
-    var wrap = document.createElement("div");
-    wrap.id = "usk-gate";
-    wrap.setAttribute("role", "dialog");
-    wrap.setAttribute("aria-modal", "true");
-
-    var card = document.createElement("div");
-    card.className = "usk-card";
-
-    var head = document.createElement("div");
-    head.className = "usk-head";
-    var logo = document.createElement("span");
-    logo.className = "usk-logo";
-    logo.innerHTML = LOGO_SVG;
-    var title = document.createElement("h1");
-    title.className = "usk-title";
-    title.textContent = "Es-tu sûr de vouloir regarder des Shorts ?";
-    head.appendChild(logo);
-    head.appendChild(title);
-
-    var sub = document.createElement("p");
-    sub.className = "usk-sub";
-    sub.textContent =
-      "Réponds aux 3 questions pour débloquer " + CONFIG.unlockMinutes + " min. Sinon, reviens à l'essentiel.";
-
-    var form = document.createElement("form");
-    form.className = "usk-form";
-
     var fields = [];
-    CONFIG.questions.slice(0, 3).forEach(function (q, i) {
-      var field = document.createElement("label");
-      field.className = "usk-field";
-      var qt = document.createElement("span");
-      qt.className = "usk-q";
-      qt.textContent = i + 1 + ". " + q;
-      var ta = document.createElement("textarea");
-      ta.className = "usk-input";
-      ta.rows = 2;
-      ta.setAttribute("autocomplete", "off");
-      ta.setAttribute("spellcheck", "false");
-      field.appendChild(qt);
-      field.appendChild(ta);
-      form.appendChild(field);
-      fields.push(ta);
-    });
-
-    var hint = document.createElement("p");
-    hint.className = "usk-hint";
-
-    var actions = document.createElement("div");
-    actions.className = "usk-actions";
-
-    var leave = document.createElement("button");
-    leave.type = "button";
-    leave.className = "usk-btn usk-leave";
-    leave.textContent = "Quitter les Shorts";
-    leave.addEventListener("click", function () {
-      location.replace("/");
-    });
-
-    var unlock = document.createElement("button");
-    unlock.type = "submit";
-    unlock.className = "usk-btn usk-unlock";
-    unlock.textContent = "Débloquer";
+    var hint = h("p", { class: "usk-hint" });
+    var unlock = h("button", { type: "submit", class: "usk-btn usk-unlock", text: "Débloquer" });
     unlock.disabled = true;
 
     function validate() {
@@ -386,10 +393,25 @@
       hint.textContent = ok ? "" : "Chaque réponse doit faire au moins " + min + " caractères.";
       return ok;
     }
-    fields.forEach(function (f) {
-      f.addEventListener("input", validate);
+
+    var form = h("form", { class: "usk-form" });
+    CONFIG.questions.slice(0, 3).forEach(function (q, i) {
+      var ta = h("textarea", { class: "usk-input", rows: "2", autocomplete: "off", spellcheck: "false" });
+      ta.addEventListener("input", validate);
+      fields.push(ta);
+      form.appendChild(h("label", { class: "usk-field" }, [h("span", { class: "usk-q", text: i + 1 + ". " + q }), ta]));
     });
 
+    var leave = h("button", {
+      type: "button",
+      class: "usk-btn usk-leave usk-gate-actions",
+      text: "Quitter les Shorts",
+      onclick: function () {
+        location.replace("/");
+      }
+    });
+    form.appendChild(h("div", { class: "usk-actions" }, [leave, unlock]));
+    form.appendChild(hint);
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!validate()) return;
@@ -397,14 +419,19 @@
       if (typeof onSuccess === "function") onSuccess();
     });
 
-    actions.appendChild(leave);
-    actions.appendChild(unlock);
-    card.appendChild(head);
-    card.appendChild(sub);
-    form.appendChild(actions);
-    form.appendChild(hint);
-    card.appendChild(form);
-    wrap.appendChild(card);
+    var card = h("div", { class: "usk-card" }, [
+      h("div", { class: "usk-head" }, [
+        h("span", { class: "usk-logo", html: LOGO_SVG }),
+        h("h1", { class: "usk-title", text: "Es-tu sûr de vouloir regarder des Shorts ?" })
+      ]),
+      h("p", {
+        class: "usk-sub",
+        text: "Réponds aux 3 questions pour débloquer " + CONFIG.unlockMinutes + " min. Sinon, reviens à l'essentiel."
+      }),
+      form
+    ]);
+
+    var wrap = h("div", { id: "usk-gate", class: "usk-ov", role: "dialog", "aria-modal": "true" }, [card]);
     (document.body || document.documentElement).appendChild(wrap);
     validate();
     if (fields[0]) fields[0].focus();
@@ -415,7 +442,140 @@
     if (g) g.remove();
   }
 
+  // --------------------------------------------------------- Bouton ⚙️ + réglages
+
+  function ensureGear() {
+    if (document.getElementById("usk-gear")) return;
+    if (!document.body) return;
+    var gear = h("div", {
+      id: "usk-gear",
+      title: "Réglages UTub Short Kill",
+      text: "⚙️",
+      onclick: openSettings
+    });
+    document.body.appendChild(gear);
+  }
+
+  function updateGear() {
+    var gear = document.getElementById("usk-gear");
+    if (!gear) return;
+    var show = CONFIG.showSettingsButton && !isShortsPath();
+    gear.style.display = show ? "flex" : "none";
+  }
+
+  function toast(msg) {
+    var old = document.getElementById("usk-toast");
+    if (old) old.remove();
+    var t = h("div", { id: "usk-toast", text: msg });
+    (document.body || document.documentElement).appendChild(t);
+    setTimeout(function () {
+      if (t && t.parentNode) t.remove();
+    }, 1600);
+  }
+
+  function closeSettings() {
+    var s = document.getElementById("usk-settings");
+    if (s) s.remove();
+  }
+
+  function openSettings() {
+    if (document.getElementById("usk-settings")) return;
+    var cfg = CONFIG;
+    var refs = {};
+
+    function toggleRow(key, label) {
+      var input = h("input", { type: "checkbox" });
+      input.checked = !!cfg[key];
+      refs[key] = input;
+      return h("label", { class: "usk-set-row" }, [h("span", { text: label }), input]);
+    }
+    function numRow(key, label, min, max) {
+      var input = h("input", { type: "number", min: String(min), max: String(max) });
+      input.value = cfg[key];
+      refs[key] = input;
+      return h("label", { class: "usk-set-row" }, [h("span", { text: label }), input]);
+    }
+
+    var openSel = h("select", {}, [
+      h("option", { value: "short", text: "Lecteur Shorts" }),
+      h("option", { value: "watch", text: "Lecteur normal (/watch)" })
+    ]);
+    openSel.value = cfg.openMode;
+    refs.openMode = openSel;
+
+    var qInputs = cfg.questions.slice(0, 3).map(function (qq) {
+      var input = h("input", { type: "text", class: "usk-set-q" });
+      input.value = qq;
+      return input;
+    });
+
+    function save() {
+      var patch = {};
+      ["enabled", "hideShorts", "gateEnabled", "showTimer", "allowFromChannels", "showSettingsButton"].forEach(function (k) {
+        patch[k] = refs[k].checked;
+      });
+      patch.openMode = refs.openMode.value;
+      patch.unlockMinutes = parseInt(refs.unlockMinutes.value, 10) || DEFAULTS.unlockMinutes;
+      patch.minAnswerLength = parseInt(refs.minAnswerLength.value, 10) || DEFAULTS.minAnswerLength;
+      patch.questions = qInputs.map(function (inp, i) {
+        return (inp.value || "").trim() || DEFAULTS.questions[i];
+      });
+      saveConfig(patch);
+      closeSettings();
+      toast("Réglages enregistrés ✓");
+    }
+
+    var lockBtn = h("button", {
+      type: "button",
+      class: "usk-btn usk-unlock",
+      text: "Verrouiller maintenant",
+      onclick: function () {
+        setUnlockedUntil(0);
+        if (isShortsPath()) guardShorts(location.pathname, location.pathname);
+        tickTimer();
+        toast("Verrouillé 🔒");
+      }
+    });
+    lockBtn.disabled = false;
+
+    var card = h("div", { class: "usk-card" }, [
+      h("div", { class: "usk-head" }, [
+        h("span", { class: "usk-logo", html: LOGO_SVG }),
+        h("h1", { class: "usk-title", text: "Réglages" })
+      ]),
+      toggleRow("enabled", "Extension active"),
+      toggleRow("hideShorts", "Masquer les Shorts"),
+      toggleRow("gateEnabled", "Protéger l'accès (3 questions)"),
+      toggleRow("showTimer", "Afficher le minuteur"),
+      toggleRow("allowFromChannels", "Autoriser depuis les chaînes"),
+      toggleRow("showSettingsButton", "Afficher le bouton ⚙️"),
+      h("label", { class: "usk-set-row" }, [h("span", { text: "Ouverture d'un Short" }), openSel]),
+      numRow("unlockMinutes", "Durée de déblocage (min)", 1, 240),
+      numRow("minAnswerLength", "Longueur min. des réponses", 1, 200),
+      h("div", { class: "usk-set-qs" }, [h("div", { class: "usk-q", text: "Les 3 questions" })].concat(qInputs)),
+      h("div", { class: "usk-actions" }, [
+        lockBtn,
+        h("button", { type: "button", class: "usk-btn usk-leave", text: "Enregistrer", onclick: save })
+      ])
+    ]);
+
+    var ov = h("div", { id: "usk-settings", class: "usk-ov", role: "dialog", "aria-modal": "true" }, [card]);
+    ov.addEventListener("click", function (e) {
+      if (e.target === ov) closeSettings();
+    });
+    (document.body || document.documentElement).appendChild(ov);
+  }
+
   // ----------------------------------------------------------------- Setup
+
+  function applyConfigChange() {
+    if (!CONFIG.enabled || !CONFIG.hideShorts) unhideAll();
+    updateChannelFlag();
+    hideShortItems(document);
+    ensureGear();
+    updateGear();
+    tickTimer();
+  }
 
   function debounce(fn, ms) {
     var t = null;
@@ -455,6 +615,7 @@
     var obs = new MutationObserver(
       debounce(function () {
         if (CONFIG.enabled && CONFIG.hideShorts) hideShortItems(document);
+        ensureGear();
       }, 150)
     );
     obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -462,6 +623,7 @@
 
   function init() {
     injectCSS();
+    CONFIG = loadConfig();
     unlockedUntil = getUnlockedUntil();
     if (isShortsPath()) markChecking(true);
     setupNavigationHooks();
@@ -469,6 +631,18 @@
     setInterval(tickTimer, 1000);
     handleNavigation();
   }
+
+  // Hooks de test (sans effet en usage réel).
+  window.__USK_TEST = {
+    loadConfig: loadConfig,
+    saveConfig: saveConfig,
+    openSettings: openSettings,
+    closeSettings: closeSettings,
+    formatTime: formatTime,
+    getConfig: function () {
+      return CONFIG;
+    }
+  };
 
   try {
     init();
