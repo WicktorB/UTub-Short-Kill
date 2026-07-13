@@ -1,13 +1,13 @@
 {
   "name": "utub-short-kill",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Masque et protège l'accès aux YouTube Shorts (extension + userscript).",
   "type": "module",
   "scripts": {
     "build": "node build/build.mjs",
     "check": "node tests/check.mjs",
-    "test": "node tests/check.mjs && node tests/extension.test.mjs && node tests/userscript.test.mjs"
+    "test": "node tests/check.mjs && node tests/extension.test.mjs && node tests/userscript.test.mjs && node tests/trustedtypes.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
