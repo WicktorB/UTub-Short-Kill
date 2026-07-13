@@ -59,9 +59,11 @@ Les réglages passent par le même bouton **⚙️** sur les pages YouTube.
 
 ## Réglages (bouton ⚙️)
 
-- **Extension active** — coupe tout d'un coup.
-- **Masquer les Shorts** — masquage dans les feeds/recherche/reco.
-- **Protéger l'accès par 3 questions** — active la fenêtre de questions.
+> Par choix (outil de self-control), les interrupteurs qui **neutralisent** la
+> protection — *masquage des Shorts* et *3 questions* — ne sont **pas** dans le
+> panneau. Pour tout désactiver, il faut passer par l'app **Userscripts**
+> (Tampermonkey sur ordi), un geste volontairement plus difficile.
+
 - **Afficher le minuteur** — pastille discrète (haut-centre, translucide, sans
   blocage des clics/taps) ; passe en rouge et pulse dans les 30 dernières
   secondes, puis re-verrouille automatiquement.

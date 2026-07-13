@@ -63,8 +63,12 @@ console.log("\n[Panneau de réglages]");
 await page.evaluate(() => window.__USK_TEST.openSettings());
 check("panneau ouvert", await page.evaluate(() => !!document.getElementById("usk-settings")));
 check(
-  "cases à cocher présentes",
-  await page.evaluate(() => document.querySelectorAll("#usk-settings input[type=checkbox]").length >= 6)
+  "3 réglages à bascule (confort/réglage fin uniquement)",
+  await page.evaluate(() => document.querySelectorAll("#usk-settings input[type=checkbox]").length === 3)
+);
+check(
+  "aucun interrupteur de désactivation de la protection",
+  await page.evaluate(() => !/Extension active|Protéger l'accès|Masquer les Shorts/.test(document.getElementById("usk-settings").textContent))
 );
 await page.evaluate(() => window.__USK_TEST.closeSettings());
 check("panneau fermé", await page.evaluate(() => !document.getElementById("usk-settings")));

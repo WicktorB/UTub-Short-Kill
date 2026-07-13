@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UTub Short Kill
 // @namespace    utub-short-kill
-// @version      1.2.2
+// @version      1.2.3
 // @description  Masque les YouTube Shorts (sauf sur les chaînes) et protège leur accès par 3 questions, avec minuteur et panneau de réglages.
 // @author       victor
 // @match        *://*.youtube.com/*
@@ -764,7 +764,7 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
       });
       function save() {
         const patch = {};
-        ["enabled", "hideShorts", "gateEnabled", "showTimer", "allowFromChannels", "showSettingsButton"].forEach(function(k) {
+        ["showTimer", "allowFromChannels", "showSettingsButton"].forEach(function(k) {
           patch[k] = refs[k].checked;
         });
         patch.openMode = refs.openMode.value;
@@ -794,9 +794,6 @@ html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"])
           logoSpan(),
           h("h1", { class: "usk-title", text: "R\xE9glages" })
         ]),
-        toggleRow("enabled", "Extension active"),
-        toggleRow("hideShorts", "Masquer les Shorts"),
-        toggleRow("gateEnabled", "Prot\xE9ger l'acc\xE8s (3 questions)"),
         toggleRow("showTimer", "Afficher le minuteur"),
         toggleRow("allowFromChannels", "Autoriser depuis les cha\xEEnes"),
         toggleRow("showSettingsButton", "Afficher le bouton \u2699\uFE0F"),
