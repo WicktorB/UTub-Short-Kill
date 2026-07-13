@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "UTub Short Kill",
+  "version": "1.0.0",
+  "description": "Masque les YouTube Shorts partout (sauf sur les chaînes des créateurs) et protège leur accès par 3 questions.",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["storage"],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "UTub Short Kill",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://youtube.com/*"
+      ],
+      "run_at": "document_start",
+      "all_frames": false,
+      "css": [
+        "src/content/preload.css",
+        "src/content/shorts.css",
+        "src/content/gate.css"
+      ],
+      "js": [
+        "src/common/defaults.js",
+        "src/content/main.js"
+      ]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "utub-short-kill@victor.bauchet",
+      "strict_min_version": "115.0"
+    }
+  }
+}
