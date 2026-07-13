@@ -9,27 +9,33 @@
 /* ------------------------------------------------------------------ */
 
 /* Barre latérale (guide complet) */
-ytd-guide-entry-renderer:has(a[href="/shorts"]),
+ytd-guide-entry-renderer:has(a[href^="/shorts"]),
 ytd-guide-entry-renderer:has(a[title="Shorts"]),
 /* Barre latérale réduite */
-ytd-mini-guide-entry-renderer:has(a[href="/shorts"]),
+ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]),
 ytd-mini-guide-entry-renderer[aria-label="Shorts"],
 /* Mobile : onglet Shorts de la barre de navigation du bas */
-ytm-pivot-bar-item-renderer:has(a[href="/shorts"]),
+ytm-pivot-bar-item-renderer:has(a[href^="/shorts"]),
 ytm-pivot-bar-item-renderer:has([aria-label="Shorts" i]),
 .pivot-shorts {
   display: none !important;
 }
 
 /* ------------------------------------------------------------------ */
-/* Étagères / sections de Shorts (accueil, abonnements, recherche,     */
-/* recommandations d'une page vidéo) : masquées PARTOUT SAUF sur une   */
-/* page de chaîne (attribut data-usk-channel posé par le script).      */
+/* Étagères / sections / vignettes de Shorts (accueil, abonnements,    */
+/* recherche, recommandations) : masquées PARTOUT SAUF sur une page    */
+/* de chaîne (attribut data-usk-channel posé par le script).           */
 /* ------------------------------------------------------------------ */
 html:not([data-usk-channel="1"]) ytd-rich-shelf-renderer[is-shorts],
 html:not([data-usk-channel="1"]) ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+html:not([data-usk-channel="1"]) ytd-rich-section-renderer:has(ytm-shorts-lockup-view-model),
 html:not([data-usk-channel="1"]) ytd-reel-shelf-renderer,
 html:not([data-usk-channel="1"]) ytm-reel-shelf-renderer,
-html:not([data-usk-channel="1"]) grid-shelf-view-model:has(a[href^="/shorts/"]) {
+html:not([data-usk-channel="1"]) grid-shelf-view-model:has(a[href^="/shorts/"]),
+/* Vignette « Short » (nouveau composant, présent aussi sur desktop) */
+html:not([data-usk-channel="1"]) ytm-shorts-lockup-view-model,
+html:not([data-usk-channel="1"]) ytm-shorts-lockup-view-model-v2,
+/* Short isolé dans une grille */
+html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"]) {
   display: none !important;
 }

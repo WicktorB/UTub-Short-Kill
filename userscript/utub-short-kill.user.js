@@ -74,20 +74,24 @@
     ".usk-hidden { display: none !important; }",
 
     /* Points d'entrée globaux : toujours masqués */
-    'ytd-guide-entry-renderer:has(a[href="/shorts"]),',
+    'ytd-guide-entry-renderer:has(a[href^="/shorts"]),',
     'ytd-guide-entry-renderer:has(a[title="Shorts"]),',
-    'ytd-mini-guide-entry-renderer:has(a[href="/shorts"]),',
+    'ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]),',
     'ytd-mini-guide-entry-renderer[aria-label="Shorts"],',
-    'ytm-pivot-bar-item-renderer:has(a[href="/shorts"]),',
+    'ytm-pivot-bar-item-renderer:has(a[href^="/shorts"]),',
     'ytm-pivot-bar-item-renderer:has([aria-label="Shorts" i]),',
     ".pivot-shorts { display: none !important; }",
 
-    /* Étagères de Shorts : masquées sauf sur une page de chaîne */
+    /* Étagères / sections / vignettes de Shorts : masquées sauf sur une chaîne */
     'html:not([data-usk-channel="1"]) ytd-rich-shelf-renderer[is-shorts],',
     'html:not([data-usk-channel="1"]) ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),',
+    'html:not([data-usk-channel="1"]) ytd-rich-section-renderer:has(ytm-shorts-lockup-view-model),',
     'html:not([data-usk-channel="1"]) ytd-reel-shelf-renderer,',
     'html:not([data-usk-channel="1"]) ytm-reel-shelf-renderer,',
-    'html:not([data-usk-channel="1"]) grid-shelf-view-model:has(a[href^="/shorts/"]) { display: none !important; }',
+    'html:not([data-usk-channel="1"]) grid-shelf-view-model:has(a[href^="/shorts/"]),',
+    'html:not([data-usk-channel="1"]) ytm-shorts-lockup-view-model,',
+    'html:not([data-usk-channel="1"]) ytm-shorts-lockup-view-model-v2,',
+    'html:not([data-usk-channel="1"]) ytd-rich-item-renderer:has(a[href^="/shorts/"]) { display: none !important; }',
 
     /* ---- Fenêtres modales (questions + réglages) : classe .usk-ov ---- */
     ".usk-ov { --usk-accent:#ef4444; --usk-green:#22c55e; position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:radial-gradient(1200px 600px at 50% -10%, rgba(239,68,68,.14), transparent 60%), rgba(6,6,9,.86); backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,system-ui,sans-serif; color:#fafafa; }",

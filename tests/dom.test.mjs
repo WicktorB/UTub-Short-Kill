@@ -53,10 +53,15 @@ console.log("\n[CSS — hors chaîne]");
 check("guide Shorts masqué", (await disp("#guide-shorts")) === "none");
 check("guide Accueil visible", (await disp("#guide-home")) !== "none");
 check("étagère reel masquée", (await disp("#reel-shelf")) === "none");
+check("vignette lockup masquée (CSS)", (await disp("#lockup")) === "none");
+check("short en grille masqué (CSS :has)", (await disp("#rich-short")) === "none");
+check("vidéo en grille visible", (await disp("#rich-normal")) !== "none");
+check("section Shorts masquée (CSS :has)", (await disp("#rich-section")) === "none");
 
 console.log("\n[CSS — sur une chaîne]");
 await page.evaluate(() => document.documentElement.setAttribute("data-usk-channel", "1"));
 check("étagère reel visible sur chaîne", (await disp("#reel-shelf")) !== "none");
+check("vignette lockup visible sur chaîne", (await disp("#lockup")) !== "none");
 await page.evaluate(() => document.documentElement.removeAttribute("data-usk-channel"));
 
 console.log("\n[JS — hideShortItems]");

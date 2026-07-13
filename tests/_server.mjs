@@ -24,6 +24,10 @@ export const FIXTURE = `<!doctype html><html lang="fr"><head><meta charset="utf-
   <ytd-reel-shelf-renderer id="reel-shelf"><a href="/shorts/aaa">short shelf</a></ytd-reel-shelf-renderer>
   <ytd-video-renderer id="vid-short"><a href="/shorts/bbb">un short</a></ytd-video-renderer>
   <ytd-video-renderer id="vid-normal"><a href="/watch?v=ccc">vidéo normale</a></ytd-video-renderer>
+  <ytm-shorts-lockup-view-model id="lockup"><a href="/shorts/ddd">vignette short</a></ytm-shorts-lockup-view-model>
+  <ytd-rich-item-renderer id="rich-short"><a href="/shorts/eee">short en grille</a></ytd-rich-item-renderer>
+  <ytd-rich-item-renderer id="rich-normal"><a href="/watch?v=fff">vidéo en grille</a></ytd-rich-item-renderer>
+  <ytd-rich-section-renderer id="rich-section"><ytm-shorts-lockup-view-model><a href="/shorts/ggg">section short</a></ytm-shorts-lockup-view-model></ytd-rich-section-renderer>
 </body></html>`;
 
 export const CHROMIUM_EXE = process.env.USK_CHROMIUM || undefined;
