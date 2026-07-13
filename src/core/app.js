@@ -454,7 +454,10 @@ export function createApp(storage) {
 
     function save() {
       const patch = {};
-      ["enabled", "hideShorts", "gateEnabled", "showTimer", "allowFromChannels", "showSettingsButton"].forEach(function (k) {
+      // Les interrupteurs qui neutralisent la protection (enabled, hideShorts,
+      // gateEnabled) ne sont volontairement PAS dans le panneau : ils gardent
+      // leur valeur. Pour tout désactiver, passer par l'app Userscripts.
+      ["showTimer", "allowFromChannels", "showSettingsButton"].forEach(function (k) {
         patch[k] = refs[k].checked;
       });
       patch.openMode = refs.openMode.value;
@@ -486,9 +489,6 @@ export function createApp(storage) {
         logoSpan(),
         h("h1", { class: "usk-title", text: "Réglages" })
       ]),
-      toggleRow("enabled", "Extension active"),
-      toggleRow("hideShorts", "Masquer les Shorts"),
-      toggleRow("gateEnabled", "Protéger l'accès (3 questions)"),
       toggleRow("showTimer", "Afficher le minuteur"),
       toggleRow("allowFromChannels", "Autoriser depuis les chaînes"),
       toggleRow("showSettingsButton", "Afficher le bouton ⚙️"),
